@@ -1,0 +1,116 @@
+# ================================
+# Operating System Files
+# ================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ================================
+# IDE & Editor Configuration
+# ================================
+.vscode/
+.idea/
+.clion.xml
+*.swp
+*.swo
+*.iml
+*.sublime-project
+*.sublime-workspace
+.vim/
+
+# ================================
+# General Build Artifacts
+# ================================
+build/
+dist/
+out/
+*.log
+*.tmp
+
+# ================================
+# C / CMake (Pico)
+# ================================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.elf
+*.bin
+*.map
+*.dSYM/
+compile_commands.json
+
+# Pico SDK (if vendored)
+pico-sdk/
+
+# ================================
+# Rust / Cargo (Pico)
+# ================================
+target/
+# Keep Cargo.lock for binaries, comment out for libraries
+# Cargo.lock
+
+# ================================
+# MicroPython (Pico + micro:bit)
+# ================================
+*.mpy
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.Python
+*.egg-info/
+
+# ================================
+# Device Firmware Files
+# ================================
+*.uf2
+*.hex
+
+# ================================
+# MakeCode (micro:bit)
+# ================================
+.makecode/
+
+# ================================
+# Debug & Profiling
+# ================================
+*.gdb
+*.core
+*.prof
+*.svd
+
+# ================================
+# Documentation Generated
+# ================================
+docs/_build/
+site/
+
+# ================================
+# Backup & Temp Files
+# ================================
+*.bak
+*.backup
+*~
+.~lock*
+
+# ================================
+# Environment & Secrets
+# ================================
+.env
+.env.local
+secrets.txt
+*.key
+.venv/
+venv/
+env/
+ENV/
