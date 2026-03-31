@@ -1,4 +1,4 @@
-# MicroPython Projects 🐍
+## MicroPython Projects 🐍
 
 Quick setup guide to get MicroPython running on your Raspberry Pi Pico.
 
