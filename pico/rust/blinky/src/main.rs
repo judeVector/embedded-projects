@@ -51,7 +51,7 @@ async fn main(spawner: Spawner) {
     // picotool load ./cyw43-firmware/43439A0_clm.bin -o 0x10140000
 
     let power = Output::new(p.PIN_23, Level::Low); // Power to WiFi chip
-    let chip_select = Output::new(p.PIN_25, Level::High); // Chip Select
+    let chip_select = Output::new(p.PIN_25, Level::High); // SPI Chip Select
     let mut pio = Pio::new(p.PIO0, Irqs);
     let spi = PioSpi::new(
         &mut pio.common,
@@ -59,8 +59,8 @@ async fn main(spawner: Spawner) {
         RM2_CLOCK_DIVIDER,
         pio.irq0,
         chip_select,
-        p.PIN_24,
-        p.PIN_29,
+        p.PIN_24, // SPI MOSI/MISO
+        p.PIN_29, // SPI MOSI/MISO
         dma::Channel::new(p.DMA_CH0, Irqs),
     );
 
