@@ -1,5 +1,5 @@
 [package]
-name = "dual-link"
+name = "dual-blink"
 version = "0.1.0"
 edition = "2024"
 
@@ -23,7 +23,7 @@ lto = true
 opt-level = 's'
 
 [[bin]]
-name = "dual-link"
+name = "dual-blink"
 path = "src/main.rs"
 test = false
 doctest = false

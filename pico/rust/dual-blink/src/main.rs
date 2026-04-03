@@ -16,7 +16,7 @@ use {defmt_rtt as _, panic_probe as _};
 #[unsafe(link_section = ".bi_entries")]
 #[used]
 pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
-    embassy_rp::binary_info::rp_program_name!(c"dual-link"),
+    embassy_rp::binary_info::rp_program_name!(c"dual-blink"),
     embassy_rp::binary_info::rp_program_description!(
         c"This program lights up the onboard LED which is connected to the cyw43 WIFI chip and an external LED connected at Pin 0"
     ),
