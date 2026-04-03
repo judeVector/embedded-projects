@@ -15,3 +15,16 @@ embassy-rp = { version = "0.10.0", features = ["defmt", "time-driver", "critical
 embassy-time = { version = "0.5.1", features = ["defmt", "defmt-timestamp-uptime"] }
 panic-probe = "1.0.0"
 static_cell = "2.1.1"
+
+
+[profile.release]
+debug = true
+lto = true # Added for smaller binary size
+opt-level = 's' # Optimize for size
+
+[[bin]]
+name = "blinky"
+path = "src/main.rs"
+test = false
+doctest = false
+bench = false
