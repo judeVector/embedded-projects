@@ -6,10 +6,13 @@ use cyw43_pio::{PioSpi, RM2_CLOCK_DIVIDER};
 use defmt::*;
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
-use embassy_rp::gpio::{Input, Level, Output, Pull};
-use embassy_rp::peripherals::{DMA_CH0, PIO0};
-use embassy_rp::pio::{InterruptHandler, Pio};
-use embassy_rp::{bind_interrupts, dma};
+use embassy_rp::{
+    bind_interrupts,
+    dma::{Channel, InterruptHandler as DmaInterruptHandler},
+    gpio::{Input, Level, Output, Pull},
+    peripherals::{DMA_CH0, PIO0},
+    pio::{InterruptHandler as PioInterruptHandler, Pio},
+};
 use embassy_time::{Duration, Timer};
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
@@ -26,8 +29,8 @@ pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
 ];
 
 bind_interrupts!(struct Irqs {
-    PIO0_IRQ_0 => InterruptHandler<PIO0>;
-    DMA_IRQ_0 => dma::InterruptHandler<DMA_CH0>;
+    PIO0_IRQ_0 => PioInterruptHandler<PIO0>;
+    DMA_IRQ_0 => DmaInterruptHandler<DMA_CH0>;
 });
 
 #[embassy_executor::task]
@@ -55,7 +58,7 @@ async fn main(spawner: Spawner) {
         chip_select,
         p.PIN_24,
         p.PIN_29,
-        dma::Channel::new(p.DMA_CH0, Irqs),
+        Channel::new(p.DMA_CH0, Irqs),
     );
 
     static STATE: StaticCell<cyw43::State> = StaticCell::new();
@@ -75,20 +78,81 @@ async fn main(spawner: Spawner) {
 
     info!("System Ready. Press button on GP15 to start blinking.");
 
-    if is_blinking {
-        // onboard ON, external OFF
-        control.gpio_set(0, true).await;
-        external_led.set_low();
-        Timer::after(Duration::from_millis(500)).await;
+    loop {
+        if is_blinking {
+            // Onboard ON, external OFF
+            control.gpio_set(0, true).await;
+            external_led.set_low();
+            info!("Onboard LED ON");
 
-        // onboard OFF, external ON
-        control.gpio_set(0, false).await;
-        external_led.set_high();
-        Timer::after(Duration::from_millis(500)).await;
-    } else {
-        // ensure both OFF when stopped
-        control.gpio_set(0, false).await;
-        external_led.set_low();
-        Timer::after(Duration::from_millis(20)).await;
+            // Wait 500ms OR until button pressed
+            match select(
+                Timer::after(Duration::from_millis(500)),
+                button.wait_for_low(),
+            )
+            .await
+            {
+                Either::First(_) => {
+                    // Timer finished normally, continue to next state
+                }
+                Either::Second(_) => {
+                    // Button pressed during ON phase
+                    Timer::after(Duration::from_millis(50)).await; // Debounce
+                    if button.is_low() {
+                        is_blinking = false;
+                        control.gpio_set(0, false).await;
+                        external_led.set_low();
+                        info!("Blinking stopped!");
+                        button.wait_for_high().await;
+                        Timer::after(Duration::from_millis(50)).await;
+                        continue;
+                    }
+                }
+            }
+
+            // Onboard OFF, external ON
+            control.gpio_set(0, false).await;
+            external_led.set_high();
+            info!("External LED ON");
+
+            // Wait 500ms OR until button pressed
+            match select(
+                Timer::after(Duration::from_millis(500)),
+                button.wait_for_low(),
+            )
+            .await
+            {
+                Either::First(_) => {
+                    // Timer finished normally, loop continues
+                }
+                Either::Second(_) => {
+                    // Button pressed during OFF phase
+                    Timer::after(Duration::from_millis(50)).await;
+                    if button.is_low() {
+                        is_blinking = false;
+                        control.gpio_set(0, false).await;
+                        external_led.set_low();
+                        info!("Blinking stopped!");
+                        button.wait_for_high().await;
+                        Timer::after(Duration::from_millis(50)).await;
+                        continue;
+                    }
+                }
+            }
+        } else {
+            // Not blinking - wait for button press to start
+            control.gpio_set(0, false).await;
+            external_led.set_low();
+
+            button.wait_for_low().await;
+            Timer::after(Duration::from_millis(50)).await;
+
+            if button.is_low() {
+                is_blinking = true;
+                info!("Blinking started!");
+                button.wait_for_high().await;
+                Timer::after(Duration::from_millis(50)).await;
+            }
+        }
     }
 }
